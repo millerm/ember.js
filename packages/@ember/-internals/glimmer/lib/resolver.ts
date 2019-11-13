@@ -13,7 +13,6 @@ import EmberError from '@ember/error';
 import { _instrumentStart } from '@ember/instrumentation';
 import {
   ComponentDefinition,
-  Opaque,
   Option,
   RuntimeResolver as IRuntimeResolver,
 } from '@glimmer/interfaces';
@@ -375,7 +374,7 @@ export default class RuntimeResolver implements IRuntimeResolver<OwnedTemplateMe
   // end CompileTimeLookup
 
   // needed for lazy compile time lookup
-  private handle(obj: Opaque) {
+  private handle(obj: unknown) {
     if (obj === undefined || obj === null) {
       return null;
     }
@@ -436,7 +435,7 @@ export default class RuntimeResolver implements IRuntimeResolver<OwnedTemplateMe
       let { owner } = meta;
       let modifier = owner.factoryFor<unknown, FactoryClass>(`modifier:${name}`);
       if (modifier !== undefined) {
-        let managerFactory = getModifierManager<ModifierManagerDelegate<Opaque>>(modifier.class);
+        let managerFactory = getModifierManager<ModifierManagerDelegate<unknown>>(modifier.class);
         let manager = managerFactory!(owner);
 
         return new CustomModifierDefinition(name, modifier, manager, this.isInteractive);
@@ -520,7 +519,7 @@ export default class RuntimeResolver implements IRuntimeResolver<OwnedTemplateMe
           assert(`missing layout for internal component ${name}`, pair.layout !== null);
 
           definition = new InternalComponentDefinition(
-            factory(owner) as InternalComponentManager<Opaque>,
+            factory(owner) as InternalComponentManager<unknown>,
             ComponentClass as Factory<any, any>,
             layout!
           );
@@ -528,7 +527,7 @@ export default class RuntimeResolver implements IRuntimeResolver<OwnedTemplateMe
           definition = new CustomManagerDefinition(
             name,
             pair.component,
-            factory(owner) as ManagerDelegate<Opaque>,
+            factory(owner) as ManagerDelegate<unknown>,
             layout !== null
               ? layout
               : owner.lookup<TemplateFactory>(P`template:components/-default`)!(owner)
