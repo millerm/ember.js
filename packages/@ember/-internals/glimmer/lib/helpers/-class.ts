@@ -1,5 +1,5 @@
 import { dasherize } from '@ember/string';
-import { Arguments, VM } from '@glimmer/runtime';
+import { VMArguments } from '@glimmer/interfaces';
 import { InternalHelperReference } from '../utils/references';
 
 function classHelper({ positional }: any) {
@@ -24,6 +24,6 @@ function classHelper({ positional }: any) {
   return value;
 }
 
-export default function(_vm: VM, args: Arguments) {
+export default function(args: VMArguments) {
   return new InternalHelperReference(classHelper, args.capture());
 }
