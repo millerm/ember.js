@@ -17,7 +17,7 @@ import {
   JitRuntimeResolver,
   Option,
 } from '@glimmer/interfaces';
-import { LazyCompiler, Macros, PartialDefinition } from '@glimmer/opcode-compiler';
+import { PartialDefinition, unwrapTemplate } from '@glimmer/opcode-compiler';
 import { getDynamicVar, ModifierDefinition } from '@glimmer/runtime';
 import CompileTimeLookup from './compile-time-lookup';
 import { CurlyComponentDefinition } from './component-managers/curly';
@@ -104,7 +104,7 @@ function lookupModuleUnificationComponentPair(
   if (
     localLayout !== null &&
     globalLayout !== null &&
-    localLayout.referrer.moduleName === globalLayout.referrer.moduleName
+    unwrapTemplate(localLayout).referrer.moduleName === unwrapTemplate(globalLayout).referrer.moduleName
   ) {
     localLayout = null;
   }
@@ -268,7 +268,7 @@ interface IBuiltInModifiers {
 
 export default class RuntimeResolver implements JitRuntimeResolver<OwnedTemplateMeta> {
   public isInteractive: boolean;
-  public compiler: LazyCompiler<OwnedTemplateMeta>;
+  // public compiler: LazyCompiler<OwnedTemplateMeta>;
 
   private handles: any[] = [
     undefined, // ensure no falsy handle
@@ -285,9 +285,9 @@ export default class RuntimeResolver implements JitRuntimeResolver<OwnedTemplate
   public helperDefinitionCount = 0;
 
   constructor(isInteractive: boolean) {
-    let macros = new Macros();
-    populateMacros(macros);
-    this.compiler = new LazyCompiler<OwnedTemplateMeta>(new CompileTimeLookup(this), this, macros);
+    // let macros = new Macros();
+    // populateMacros(macros);
+    // this.compiler = new LazyCompiler<OwnedTemplateMeta>(new CompileTimeLookup(this), this, macros);
     this.isInteractive = isInteractive;
 
     this.builtInModifiers = {
@@ -302,7 +302,7 @@ export default class RuntimeResolver implements JitRuntimeResolver<OwnedTemplate
    * public componentDefHandleCount = 0;
    * Called while executing Append Op.PushDynamicComponentManager if string
    */
-  lookupComponentDefinition(name: string, meta: OwnedTemplateMeta): Option<ComponentDefinition> {
+  lookupComponent(name: string, meta: OwnedTemplateMeta): Option<ComponentDefinition> {
     let handle = this.lookupComponentHandle(name, meta);
     if (handle === null) {
       assert(
@@ -372,6 +372,9 @@ export default class RuntimeResolver implements JitRuntimeResolver<OwnedTemplate
     }
   }
 
+  // TODO: Do we need this?
+  compilable(): any {}
+
   // end CompileTimeLookup
 
   // needed for lazy compile time lookup
@@ -412,12 +415,12 @@ export default class RuntimeResolver implements JitRuntimeResolver<OwnedTemplate
       return null;
     }
 
-    return (vm, args) => {
+    return (args, vm) => {
       const helper = factory.create();
       if (isSimpleHelper(helper)) {
         return SimpleHelperReference.create(helper.compute, args.capture());
       }
-      vm.newDestroyable(helper);
+      vm.associateDestroyable(helper);
       return ClassBasedHelperReference.create(helper, args.capture());
     };
   }
@@ -474,7 +477,7 @@ export default class RuntimeResolver implements JitRuntimeResolver<OwnedTemplate
       return null;
     }
 
-    let layout: Option<OwnedTemplate> = null;
+    let layout: OwnedTemplate | undefined;
     let key: object;
 
     if (pair.component === null) {
@@ -488,7 +491,7 @@ export default class RuntimeResolver implements JitRuntimeResolver<OwnedTemplate
       return cachedComponentDefinition;
     }
 
-    if (layout === null && pair.layout !== null) {
+    if (layout === undefined && pair.layout !== null) {
       layout = pair.layout(owner);
     }
 
@@ -529,7 +532,7 @@ export default class RuntimeResolver implements JitRuntimeResolver<OwnedTemplate
             name,
             pair.component,
             factory(owner) as ManagerDelegate<unknown>,
-            layout !== null
+            layout !== undefined
               ? layout
               : owner.lookup<TemplateFactory>(P`template:components/-default`)!(owner)
           );
@@ -541,7 +544,6 @@ export default class RuntimeResolver implements JitRuntimeResolver<OwnedTemplate
       definition = new CurlyComponentDefinition(
         name,
         pair.component || owner.factoryFor(P`component:-default`),
-        null,
         layout
       );
     }
