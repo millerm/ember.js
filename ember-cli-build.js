@@ -9,6 +9,8 @@ const testPolyfills = require('./broccoli/test-polyfills');
 const rollupPackage = require('./broccoli/rollup-package');
 const minify = require('./broccoli/minify');
 
+Error.stackTraceLimit = Infinity;
+
 const {
   routerES,
   jquery,

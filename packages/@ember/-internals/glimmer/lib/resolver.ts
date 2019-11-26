@@ -11,12 +11,7 @@ import { assert, deprecate } from '@ember/debug';
 import { PARTIALS } from '@ember/deprecated-features';
 import EmberError from '@ember/error';
 import { _instrumentStart } from '@ember/instrumentation';
-import {
-  ComponentDefinition,
-  Helper,
-  JitRuntimeResolver,
-  Option,
-} from '@glimmer/interfaces';
+import { ComponentDefinition, Helper, JitRuntimeResolver, Option } from '@glimmer/interfaces';
 import { PartialDefinition, unwrapTemplate } from '@glimmer/opcode-compiler';
 import { getDynamicVar, ModifierDefinition } from '@glimmer/runtime';
 import { CurlyComponentDefinition } from './component-managers/curly';
@@ -46,7 +41,6 @@ import { default as unbound } from './helpers/unbound';
 import ActionModifierManager from './modifiers/action';
 import { CustomModifierDefinition, ModifierManagerDelegate } from './modifiers/custom';
 import OnModifierManager from './modifiers/on';
-import { populateMacros } from './syntax';
 import { mountHelper } from './syntax/mount';
 import { outletHelper } from './syntax/outlet';
 import { Factory as TemplateFactory, OwnedTemplate } from './template';
@@ -103,7 +97,8 @@ function lookupModuleUnificationComponentPair(
   if (
     localLayout !== null &&
     globalLayout !== null &&
-    unwrapTemplate(localLayout).referrer.moduleName === unwrapTemplate(globalLayout).referrer.moduleName
+    unwrapTemplate(localLayout).referrer.moduleName ===
+      unwrapTemplate(globalLayout).referrer.moduleName
   ) {
     localLayout = null;
   }
